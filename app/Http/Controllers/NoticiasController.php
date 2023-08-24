@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Noticias;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 class NoticiasController extends Controller
 {
@@ -47,7 +48,15 @@ class NoticiasController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $dadosNoticias = Noticias::find($id);
+        $contador = $dadosNoticias->count();
+
+        if($dadosNoticias){
+            return 'Noticias encontradas: '.$contador.' - '.$dadosNoticias.response()->json([],Response::HTTP_NO_CONTENT); 
+        }else{
+            return 'Noticias Não localizadas.'.response()->json([],Response::HTTP_NO_CONTENT); 
+        }
+
     }
 
     /**
@@ -55,7 +64,27 @@ class NoticiasController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $dadosNoticias =  $request->all();
+
+        $valida = validator::make($dadosNoticias,[
+            'titulo' => 'required',
+            'conteudo' => 'required'
+        ]);
+
+        if($valida->fails()){
+            return "Erro validação!!".$valida->$errors();
+        }
+        $dadosNoticiasBanco = Noticias::find($id);
+        $dadosNoticiasBanco->titulo = $dadosNoticias['titulo'];
+        $dadosNoticiasBanco->conteudo = $dadosNoticias['conteudo'];
+
+        $enviarNoticias = $dadosNoticiasBanco->save();
+
+        if($enviarNoticias){
+            return 'A Noticia foi alterada com sucesso.'.response()->json([],Response::HTTP_NO_CONTENT); 
+        }else{
+            return 'A Noticia Não foi alterada.'.response()->json([],Response::HTTP_NO_CONTENT); 
+        }
     }
 
     /**
@@ -63,10 +92,14 @@ class NoticiasController extends Controller
      */
     public function destroy(string $id)
     {
-        $dadosNoticias = Noticias::All();
-        $dadosNoticias1 = $dadosNoticias->find($id);
-        $dadosNoticias1->delete();
-
-        return 'rr'; 
+        
+        $dadosNoticias = Noticias::find($id);
+        if($dadosNoticias){
+            $dadosNoticias->delete();
+            return 'A Noticia foi deletada com sucesso.'.response()->json([],Response::HTTP_NO_CONTENT); 
+        }else{
+            return 'A Noticia Não foi deletada com sucesso.'.response()->json([],Response::HTTP_NO_CONTENT); 
+        }
+    
     }
 }
